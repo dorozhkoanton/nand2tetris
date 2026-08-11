@@ -8,54 +8,63 @@
 // i.e. writes "black" in every pixel. When no key is pressed, 
 // the screen should be cleared.
 
-// state: 0 = белый, -1 = чёрный
+
+// state: current screen color — 0 (white) or -1 (black)
 @state
 M = 0
 
+// ptr: current write position in screen memory
 @SCREEN
 D = A
 @ptr
 M = D
 
 (LOOP)
+    // Read keyboard register — nonzero means a key is held down
     @KBD
     D = M
     @WANT_BLACK
     D;JNE
-    D = 0
+    D = 0               // no key pressed → desired color = white (0)
     @CHECK
     0;JMP
 (WANT_BLACK)
-    D = -1
+    D = -1              // key pressed → desired color = black (-1)
 
 (CHECK)
+    // desired - state:
+    //   == 0 → color unchanged, continue filling
+    //   != 0 → color changed, reset ptr and flip state
     @state
-    D = D - M       // desired - state
+    D = D - M
     @CHANGED
-    D;JNE           // ≠ 0 → смена состояния
+    D;JNE
 
-    // Состояние не изменилось: пишем одно слово
+    // Same state: write one word to screen at current ptr position
     @state
     D = M
     @ptr
     A = M
-    M = D           // screen[ptr] = state
+    M = D               // screen[ptr] = state
 
+    // Advance ptr; if ptr >= KBD then we've passed the last screen word
     @ptr
     M = M + 1
     D = M
     @KBD
-    D = D - A
+    D = D - A           // ptr - 24576; negative means still inside screen
     @RESET_PTR
-    D;JGE           // ptr >= KBD → wrap
+    D;JGE               // ptr >= KBD → wrap
     @LOOP
     0;JMP
 
 (CHANGED)
+    // Flip state: 0 → -1 (black), -1 → 0 (white)
     @state
-    M = !M          // 0 ↔ -1, fall-through в RESET_PTR
+    M = !M              // bitwise NOT, fall through to RESET_PTR
 
 (RESET_PTR)
+    // Reset ptr to beginning of screen memory and restart the loop
     @SCREEN
     D = A
     @ptr
