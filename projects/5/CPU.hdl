@@ -32,5 +32,49 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-	//// Replace this comment with your code.
+    // Should Write A D M
+    Not(in=instruction[15], out=isAInstruction);
+    Or(a=instruction[5], b=isAInstruction, out=writeA);
+    And(a=instruction[4], b=instruction[15], out=writeD);
+    And(a=instruction[3], b=instruction[15], out=writeM);
+
+    // ARegister
+    Mux16(a=ALUOut, b=instruction, sel=isAInstruction, out=ALUOutOrInstruction);
+    ARegister(in=ALUOutOrInstruction, load=writeA, out=ARegisterOut, out[0..14]=addressM);
+
+    // DRegister
+    DRegister(in=ALUOut, load=writeD, out=DRegisterOut);
+
+    // ALU
+    Mux16(a=ARegisterOut, b=inM, sel=instruction[12], out=ARegisterOutOrInM);
+
+    ALU(
+        x=DRegisterOut,
+        y=ARegisterOutOrInM,
+        zx=instruction[11],
+        nx=instruction[10],
+        zy=instruction[9],
+        ny=instruction[8],
+        f=instruction[7],
+        no=instruction[6],
+        out=outM,
+        out=ALUOut,
+        zr=ALUZero,
+        ng=ALUNegative
+    );
+
+    // Program Counter + Jumping
+    Or(a=ALUNegative, b=ALUZero, out=ALUNotPositive);
+    Not(in=ALUNotPositive, out=ALUPositive); // De Morgan: NOT(negative OR zero) = positive
+
+    And(a=ALUNegative, b=instruction[2], out=jumpIfNegative);
+    And(a=ALUZero, b=instruction[1], out=jumpIfZero);
+    And(a=ALUPositive, b=instruction[0], out=jumpIfPositive);
+
+    Or(a=jumpIfNegative, b=jumpIfZero, out=jumpIfNotPositive);
+    Or(a=jumpIfNotPositive, b=jumpIfPositive, out=shouldJump);
+
+    And(a=instruction[15], b=shouldJump, out=writePC);
+
+    PC(in=ARegisterOut, inc=true, load=writePC, reset=reset, out[0..14]=pc);
 }
