@@ -20,8 +20,12 @@ impl Address {
         value <= MAX_ADDRESS
     }
 
-    pub fn next(self) -> Result<Self, AddressRangeError> {
+    pub fn next(&self) -> Result<Self, AddressRangeError> {
         Self::new(self.value + 1)
+    }
+
+    pub fn to_bits(self) -> u16 {
+        self.value
     }
 }
 

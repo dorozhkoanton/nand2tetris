@@ -17,9 +17,7 @@ impl Instruction {
     pub fn new(s: &str) -> Result<Self, ParseInstructionError> {
         let instruction_str = s.trim();
 
-        if instruction_str.is_empty() || instruction_str.starts_with("//") {
-            todo!()
-        } else if let Some(address_ref_str) = instruction_str.strip_prefix('@') {
+        if let Some(address_ref_str) = instruction_str.strip_prefix('@') {
             let address_ref = AddressRef::new(address_ref_str)?;
             Ok(Self::A(address_ref))
         } else if let Some(label_str) = instruction_str

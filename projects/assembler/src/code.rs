@@ -115,7 +115,7 @@ impl FromStr for Dest {
 }
 
 #[derive(Debug)]
-struct ParseDestError(String);
+pub struct ParseDestError(String);
 
 impl Error for ParseDestError {}
 
@@ -236,7 +236,7 @@ impl FromStr for Comp {
 }
 
 #[derive(Debug)]
-struct ParseCompError(String);
+pub struct ParseCompError(String);
 
 impl Error for ParseCompError {}
 
@@ -297,7 +297,7 @@ impl FromStr for Jump {
 }
 
 #[derive(Debug)]
-struct ParseJumpError(String);
+pub struct ParseJumpError(String);
 
 impl Error for ParseJumpError {}
 
